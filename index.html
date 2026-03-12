@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Imposter Party</title>
+    
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icon.svg">
+    <meta name="theme-color" content="#6c5ce7">
+
+    <style>
+        :root {
+            /* Light Mode: Vibrant Sunrise */
+            --bg-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            --card-bg: rgba(255, 255, 255, 0.6);
+            --card-border: rgba(255, 255, 255, 0.8);
+            --text-main: #2d3436;
+            --text-muted: #636e72;
+            --primary: #6c5ce7;
+            --primary-hover: #5b4bc4;
+            --accent: #ff7675;
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        [data-theme="dark"] {
+            /* Dark Mode: Cyberpunk / Neon */
+            --bg-gradient: linear-gradient(135deg, #141e30 0%, #243b55 100%);
+            --card-bg: rgba(20, 25, 35, 0.6);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f5f6fa;
+            --text-muted: #dcdde1;
+            --primary: #a29bfe;
+            --primary-hover: #8c82fc;
+            --accent: #fab1a0;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            transition: background 0.5s ease;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 450px;
+            padding: 30px 20px;
+            text-align: center;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        h1 { margin-top: 0; font-size: 2.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2, h3 { color: var(--text-main); margin-bottom: 10px; }
+        p { color: var(--text-muted); line-height: 1.5; font-size: 0.95rem; }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            margin: 15px 0 5px 0;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+            transition: transform 0.1s ease, background-color 0.2s ease;
+        }
+
+        button:active { transform: scale(0.96); }
+        button:hover { background-color: var(--primary-hover); }
+
+        input, select {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        input:focus, select:focus { border-color: var(--primary); }
+        [data-theme="dark"] input, [data-theme="dark"] select { background: rgba(0, 0, 0, 0.2); }
+        [data-theme="dark"] option { background: #243b55; color: white; }
+
+        .card {
+            background: var(--card-bg);
+            padding: 40px 20px;
+            border-radius: 20px;
+            border: 2px dashed var(--primary);
+            margin-top: 25px;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:active { transform: scale(0.98); }
+
+        .hidden { display: none !important; }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            z-index: 100;
+        }
+
+        .role-reveal { font-size: 2rem; font-weight: 900; color: var(--accent); margin: 10px 0; letter-spacing: 1px; }
+        .hint-badge { background: rgba(0,0,0,0.1); padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; display: inline-block; margin-bottom: 10px; font-weight: bold; }
+        [data-theme="dark"] .hint-badge { background: rgba(255,255,255,0.1); }
+        
+        .player-tag { background: var(--primary); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-bottom: 10px; }
+        
+        #name-list { text-align: left; margin: 15px 0; max-height: 180px; overflow-y: auto; padding-right: 5px; }
+        .name-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.05); padding: 10px 15px; margin-bottom: 8px; border-radius: 10px; font-weight: 600; }
+        [data-theme="dark"] .name-item { background: rgba(255,255,255,0.05); }
+        
+        .delete-btn { background: none; box-shadow: none; width: auto; padding: 0; margin: 0; font-size: 1.2rem; color: var(--accent); }
+        
+        .flex-row { display: flex; gap: 10px; align-items: center; }
+        .flex-row button { width: 30%; margin: 8px 0; }
+        .flex-row input { width: 70%; }
+
+        /* Toggle Switch CSS */
+        .switch-container { display: flex; align-items: center; justify-content: space-between; margin: 15px 0; padding: 12px 15px; background: rgba(0,0,0,0.05); border-radius: 12px; font-weight: 600; }
+        [data-theme="dark"] .switch-container { background: rgba(255,255,255,0.05); }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* Scoreboard Additions */
+        .score-display { color: var(--primary); margin-left: auto; margin-right: 15px; }
+        [data-theme="dark"] .score-display { color: var(--primary-hover); }
+        .add-score-btn { width: auto; padding: 6px 12px; margin: 0; font-size: 1rem; border-radius: 8px; }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <div class="theme-toggle" onclick="toggleTheme()">🌓</div>
+
+    <div class="container">
+        <div id="setup-screen">
+            <h1>🕵️‍♂️ Imposter</h1>
+            <p>Find the liar among your friends.</p>
+            
+            <h3 style="text-align: left; margin-top: 25px;">1. Who is playing?</h3>
+            <div class="flex-row">
+                <input type="text" id="name-input" placeholder="Enter player name...">
+                <button onclick="addName()">Add</button>
+            </div>
+            <div id="name-list"></div>
+
+            <h3 style="text-align: left; margin-top: 20px;">2. Game Settings</h3>
+            
+            <div class="switch-container">
+                <span>💡 Enable Imposter Hints</span>
+                <label class="switch">
+                    <input type="checkbox" id="hint-toggle" checked onchange="updateUI()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <select id="category-select" onchange="updateUI()">
+                <option value="random">🎲 Random Category</option>
+                <option value="food">🍕 Food</option>
+                <option value="places">🌍 Places</option>
+                <option value="animals">🦁 Animals</option>
+                <option value="jobs">💼 Jobs</option>
+                <option value="custom">✨ Custom Word</option>
+            </select>
+            
+            <div id="custom-inputs" class="hidden">
+                <input type="text" id="custom-word" placeholder="Type the secret word... (e.g. Shark)">
+                <input type="text" id="custom-hint" placeholder="Type a hint... (e.g. Animal)">
+            </div>
+
+            <button onclick="startGame()" style="margin-top: 25px;">Start Game</button>
+        </div>
+
+        <div id="game-screen" class="hidden">
+            <span class="player-tag">Current Player</span>
+            <h2 id="turn-display">Name</h2>
+            <div class="card" onclick="revealRole()">
+                <div id="card-content">
+                    <span style="font-size: 3rem; margin-bottom: 10px; display: block;">👁️</span>
+                    Tap to reveal word
+                </div>
+            </div>
+            <p id="instruction" style="margin-top: 20px;">Keep it a secret! Hand the phone to the next player when done.</p>
+            <button id="next-btn" class="hidden" onclick="handleNextStep()">Next Player</button>
+        </div>
+
+        <div id="vote-screen" class="hidden">
+            <h1>🚨 Time to Vote!</h1>
+            <p>Discuss everyone's clues. On the count of 3, point to the Imposter!</p>
+            
+            <button id="reveal-word-btn" onclick="showSecretWord()" style="margin-top: 20px;">Reveal Secret Word</button>
+
+            <div id="revealed-info" class="card hidden" style="border-style: solid; border-color: var(--accent);">
+                <p style="margin:0;">The secret word was:</p>
+                <h3 id="reveal-word" class="role-reveal"></h3>
+                <p id="reveal-hint-container" style="margin:0; opacity:0.8;">Hint: <span id="reveal-hint"></span></p>
+            </div>
+
+            <div id="scoreboard-section" class="hidden" style="margin-top: 25px;">
+                <h3 style="text-align: left;">Scoreboard (Tap +1 for winners)</h3>
+                <div id="scoreboard-list"></div>
+            </div>
+
+            <button id="next-round-btn" class="hidden" onclick="nextRound()" style="margin-top: 20px; background-color: var(--accent);">Next Round</button>
+        </div>
+    </div>
+
+    <script>
+        // --- PWA Service Worker Registration ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered successfully.'))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
+        }
+
+        // --- Game Logic ---
+        const wordBank = {
+            food: [
+                { word: "Pizza", hint: "Italian Food" },
+                { word: "Sushi", hint: "Japanese Food" },
+                { word: "Hamburger", hint: "Fast Food" },
+                { word: "Taco", hint: "Mexican Food" },
+                { word: "Pasta", hint: "Noodles" },
+                { word: "Croissant", hint: "Pastry" },
+                { word: "Ice Cream", hint: "Dessert" },
+                { word: "Steak", hint: "Meat" }
+            ],
+            places: [
+                { word: "Paris", hint: "City" },
+                { word: "Moon", hint: "Space" },
+                { word: "Hospital", hint: "Medical Facility" },
+                { word: "Cinema", hint: "Entertainment" },
+                { word: "Beach", hint: "Nature / Outdoors" },
+                { word: "Gym", hint: "Fitness" },
+                { word: "Library", hint: "Books" },
+                { word: "Desert", hint: "Biome" }
+            ],
+            animals: [
+                { word: "Lion", hint: "Wild Animal" },
+                { word: "Elephant", hint: "Large Animal" },
+                { word: "Penguin", hint: "Bird" },
+                { word: "Shark", hint: "Ocean Creature" },
+                { word: "Kangaroo", hint: "Australian Animal" },
+                { word: "Spider", hint: "Bug / Arachnid" },
+                { word: "Snake", hint: "Reptile" },
+                { word: "Horse", hint: "Farm Animal" }
+            ],
+            jobs: [
+                { word: "Doctor", hint: "Medical Field" },
+                { word: "Teacher", hint: "Education" },
+                { word: "Firefighter", hint: "Emergency Services" },
+                { word: "Chef", hint: "Culinary" },
+                { word: "Astronaut", hint: "Space Explorer" },
+                { word: "Police", hint: "Law Enforcement" },
+                { word: "Plumber", hint: "Tradesman" },
+                { word: "Artist", hint: "Creative Field" }
+            ]
+        };
+
+        let players = [];
+        let scores = {}; // Keeps track of player points
+        let gameState = { imposterIndex: -1, secretWord: "", secretHint: "", currentPlayer: 0, revealed: false };
+
+        document.getElementById("name-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                addName();
+            }
+        });
+
+        function toggleTheme() {
+            const body = document.body;
+            body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+        }
+
+        function addName() {
+            const input = document.getElementById('name-input');
+            const name = input.value.trim();
+            
+            // Prevent duplicate names and score resets
+            if (name && !players.includes(name)) {
+                players.push(name);
+                scores[name] = 0; // Initialize score to 0
+                renderNames();
+                input.value = "";
+                input.focus();
+            } else if (players.includes(name)) {
+                alert("Player name already exists!");
+            }
+        }
+
+        function removePlayer(index, name) {
+            players.splice(index, 1);
+            delete scores[name]; // Remove their score as well
+            renderNames();
+        }
+
+        function renderNames() {
+            const list = document.getElementById('name-list');
+            list.innerHTML = players.map((n, i) => `
+                <div class="name-item">
+                    <span>${n}</span>
+                    <span class="score-display">${scores[n]} pts</span>
+                    <button class="delete-btn" onclick="removePlayer(${i}, '${n}')">✖</button>
+                </div>
+            `).join('');
+        }
+
+        function updateUI() {
+            const select = document.getElementById('category-select');
+            const hintToggle = document.getElementById('hint-toggle').checked;
+            const customInputsDiv = document.getElementById('custom-inputs');
+            const customHintInput = document.getElementById('custom-hint');
+
+            if (select.value === 'custom') {
+                customInputsDiv.classList.remove('hidden');
+                if (hintToggle) {
+                    customHintInput.classList.remove('hidden');
+                } else {
+                    customHintInput.classList.add('hidden');
+                }
+            } else {
+                customInputsDiv.classList.add('hidden');
+            }
+        }
+
+        function startGame() {
+            if (players.length < 3) return alert("You need at least 3 players to play!");
+            
+            const category = document.getElementById('category-select').value;
+            const useHints = document.getElementById('hint-toggle').checked;
+            
+            if (category === 'custom') {
+                const customWord = document.getElementById('custom-word').value.trim();
+                if (!customWord) return alert("Please enter a custom word!");
+                gameState.secretWord = customWord;
+
+                if (useHints) {
+                    const customHint = document.getElementById('custom-hint').value.trim();
+                    if (!customHint) return alert("Please enter a hint for the Imposter!");
+                    gameState.secretHint = customHint;
+                } else {
+                    gameState.secretHint = "";
+                }
+            } else {
+                const cat = category === 'random' ? Object.keys(wordBank)[Math.floor(Math.random() * Object.keys(wordBank).length)] : category;
+                const list = wordBank[cat];
+                const randomItem = list[Math.floor(Math.random() * list.length)];
+                
+                gameState.secretWord = randomItem.word;
+                gameState.secretHint = useHints ? randomItem.hint : "";
+            }
+
+            gameState.imposterIndex = Math.floor(Math.random() * players.length);
+            gameState.currentPlayer = 0;
+            
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            updateTurn();
+        }
+
+        function updateTurn() {
+            gameState.revealed = false;
+            document.getElementById('turn-display').innerText = players[gameState.currentPlayer];
+            document.getElementById('card-content').innerHTML = `<span style="font-size: 3rem; margin-bottom: 10px; display: block;">👁️</span>Tap to reveal word`;
+            document.getElementById('next-btn').classList.add('hidden');
+        }
+
+        function revealRole() {
+            if (gameState.revealed) return;
+            const content = document.getElementById('card-content');
+            
+            const hintHtml = gameState.secretHint ? `<div class="hint-badge">Hint: ${gameState.secretHint}</div><br>` : "";
+
+            if (gameState.currentPlayer === gameState.imposterIndex) {
+                content.innerHTML = `
+                    ${hintHtml}
+                    <span class="role-reveal">IMPOSTER</span><br>
+                    <span style="font-size:2rem">🤫</span><br>
+                    ${gameState.secretHint ? 'Use the hint to blend in!' : 'Blend in with the group!'}`;
+            } else {
+                content.innerHTML = `
+                    ${hintHtml}
+                    Word:<br><span class="role-reveal">${gameState.secretWord}</span>`;
+            }
+            
+            gameState.revealed = true;
+            const btn = document.getElementById('next-btn');
+            btn.classList.remove('hidden');
+            
+            if (gameState.currentPlayer === players.length - 1) {
+                btn.innerText = "Start Game";
+            } else {
+                btn.innerText = "Next Player";
+            }
+        }
+
+        function handleNextStep() {
+            if (gameState.currentPlayer === players.length - 1) {
+                showVoting();
+            } else {
+                gameState.currentPlayer++;
+                updateTurn();
+            }
+        }
+
+        function showVoting() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('vote-screen').classList.remove('hidden');
+            
+            // Reset Voting Screen UI States
+            document.getElementById('reveal-word-btn').classList.remove('hidden');
+            document.getElementById('revealed-info').classList.add('hidden');
+            document.getElementById('scoreboard-section').classList.add('hidden');
+            document.getElementById('next-round-btn').classList.add('hidden');
+
+            document.getElementById('reveal-word').innerText = gameState.secretWord;
+            
+            const hintContainer = document.getElementById('reveal-hint-container');
+            if (gameState.secretHint) {
+                hintContainer.classList.remove('hidden');
+                document.getElementById('reveal-hint').innerText = gameState.secretHint;
+            } else {
+                hintContainer.classList.add('hidden');
+            }
+        }
+
+        function showSecretWord() {
+            // Hide the reveal button and show the actual card + scoreboard
+            document.getElementById('reveal-word-btn').classList.add('hidden');
+            document.getElementById('revealed-info').classList.remove('hidden');
+            document.getElementById('scoreboard-section').classList.remove('hidden');
+            document.getElementById('next-round-btn').classList.remove('hidden');
+            
+            renderScoreboard();
+        }
+
+        function renderScoreboard() {
+            const list = document.getElementById('scoreboard-list');
+            list.innerHTML = players.map(n => `
+                <div class="name-item">
+                    <span>${n} - <strong>${scores[n]}</strong> pts</span>
+                    <button class="add-score-btn" onclick="addScore('${n}')">+1</button>
+                </div>
+            `).join('');
+        }
+
+        function addScore(name) {
+            scores[name]++;
+            renderScoreboard(); // Update vote screen scoreboard
+        }
+
+        function nextRound() {
+            // Re-render names on the setup screen to show updated scores
+            renderNames(); 
+            
+            document.getElementById('vote-screen').classList.add('hidden');
+            document.getElementById('setup-screen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
